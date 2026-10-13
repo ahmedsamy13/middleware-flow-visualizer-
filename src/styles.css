@@ -1,0 +1,471 @@
+@import "tailwindcss";
+@import "./theme.css";
+@theme {
+  --font-sans: "Inter", "Segoe UI", Arial, sans-serif;
+  --font-mono: Consolas, "Courier New", monospace;
+  --color-error: #f0a6ae;
+}
+@layer base {
+  body {
+    @apply m-0 bg-canvas font-sans text-ink antialiased;
+  }
+  button,
+  summary {
+    @apply cursor-pointer;
+  }
+  button:disabled {
+    @apply cursor-not-allowed opacity-40;
+  }
+  input {
+    @apply accent-primary;
+  }
+  button,
+  a,
+  input,
+  select,
+  summary,
+  [tabindex] {
+    &:focus-visible {
+      @apply outline-2 outline-offset-3 outline-accent;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+@layer components {
+  .app-shell {
+    @apply mx-auto max-w-[1500px] px-5 sm:px-8 xl:px-10;
+  }
+  .app-header {
+    @apply flex h-20 items-center justify-between border-b border-line;
+  }
+  .brand {
+    @apply flex items-center gap-2.5 text-lg tracking-[-.4px] sm:text-xl;
+  }
+  .brand-icon {
+    @apply grid size-9 place-items-center rounded-[10px] bg-primary text-on-primary;
+  }
+  .header-links {
+    @apply flex items-center gap-6;
+  }
+  .header-links > a {
+    @apply flex items-center gap-2 text-xs text-muted;
+  }
+  .express-badge {
+    @apply hidden rounded border border-line bg-panel px-2 py-1 text-[9px] tracking-wide text-muted sm:inline;
+  }
+  .intro {
+    @apply flex flex-wrap items-center justify-between gap-5 py-8;
+  }
+  .eyebrow {
+    @apply mb-3 flex items-center gap-2 text-[9px] font-semibold tracking-[1.5px] text-accent;
+  }
+  .eyebrow > span {
+    @apply size-1.5 rounded-full bg-success;
+  }
+  h1 {
+    @apply text-[30px] leading-tight font-semibold tracking-[-1.2px] sm:text-[36px];
+  }
+  h1 > span {
+    @apply text-accent;
+  }
+  .intro p {
+    @apply mt-2 text-xs leading-6 text-muted sm:text-sm;
+  }
+  .intro-note {
+    @apply hidden items-center gap-3 text-sm text-accent md:flex;
+  }
+  .intro-note small {
+    @apply text-[10px] text-muted;
+  }
+  .request-bar {
+    @apply mb-4 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-line bg-surface p-3;
+  }
+  .request-input {
+    @apply flex min-w-0 flex-1 items-center gap-3;
+  }
+  .request-input > label {
+    @apply text-[9px] font-semibold tracking-wide text-faint;
+  }
+  .request-input select {
+    @apply rounded-md border border-accent/30 bg-selected px-2 py-2 font-mono text-[11px] text-accent;
+  }
+  .request-input input {
+    @apply min-w-0 flex-1 rounded-md border border-line bg-recessed px-3 py-2 font-mono text-xs text-ink;
+  }
+  .preset-input {
+    @apply flex items-center gap-2 text-[10px] text-muted;
+  }
+  .preset-input select {
+    @apply rounded-md border border-line bg-panel px-2 py-2 text-[11px];
+  }
+  .workspace {
+    @apply grid overflow-hidden rounded-xl border border-line bg-surface lg:grid-cols-[340px_minmax(0,1fr)];
+  }
+  .editor-panel {
+    @apply min-w-0 border-b border-line lg:border-r lg:border-b-0;
+  }
+  .panel-heading {
+    @apply flex h-14 items-center justify-between gap-2 border-b border-line px-4 text-xs font-semibold;
+  }
+  .panel-heading > span:first-child {
+    @apply flex items-center gap-2;
+  }
+  .subtle {
+    @apply text-[9px] font-normal text-faint;
+  }
+  .add-toolbar {
+    @apply flex flex-wrap gap-3 border-b border-line bg-panel/40 px-4 py-3;
+  }
+  .add-toolbar button,
+  .child-actions button {
+    @apply flex items-center gap-1 text-[10px] text-accent;
+  }
+  .stack-tree {
+    @apply max-h-[300px] overflow-auto py-2;
+  }
+  .stack-row {
+    @apply flex w-full items-center gap-2 border-l-2 border-transparent px-3 py-2.5 text-left hover:bg-panel;
+  }
+  .stack-row > span:nth-last-child(2) {
+    @apply min-w-0 flex-1;
+  }
+  .stack-row strong {
+    @apply block truncate text-[11px] font-medium;
+  }
+  .stack-row small {
+    @apply mt-1 block truncate font-mono text-[9px] text-faint;
+  }
+  .stack-row > svg {
+    @apply -rotate-90 text-faint;
+  }
+  .stack-selected {
+    @apply border-accent bg-selected;
+  }
+  .stack-disabled {
+    opacity: 0.45;
+  }
+  .stack-index {
+    @apply w-3 font-mono text-[9px] text-faint;
+  }
+  .kind-dot {
+    @apply size-1.5 shrink-0 rounded-full bg-accent;
+  }
+  .kind-error {
+    @apply bg-error;
+  }
+  .kind-router {
+    @apply bg-note;
+  }
+  .kind-route {
+    @apply bg-success;
+  }
+  .empty-stack {
+    @apply p-5 text-xs text-faint;
+  }
+  .layer-editor {
+    @apply border-t border-line p-4;
+  }
+  .edit-heading {
+    @apply mb-4 flex items-center justify-between;
+  }
+  .edit-heading h2 {
+    @apply text-xs font-semibold;
+  }
+  .edit-heading > div {
+    @apply flex gap-3 text-muted;
+  }
+  .layer-editor > label,
+  .edit-fields > label {
+    @apply mb-3 block text-[10px] text-muted;
+  }
+  .layer-editor input:not([type="checkbox"]),
+  .layer-editor select {
+    @apply mt-1.5 w-full rounded-md border border-line bg-recessed px-2.5 py-2 font-mono text-[11px] text-ink;
+  }
+  .layer-editor input:disabled {
+    @apply opacity-40;
+  }
+  .edit-fields {
+    @apply grid grid-cols-2 gap-3;
+  }
+  .enabled-option {
+    @apply flex! items-center gap-2;
+  }
+  .child-actions {
+    @apply mb-4 rounded-md border border-line bg-recessed p-3;
+  }
+  .child-actions > div {
+    @apply mt-3 flex flex-wrap gap-3;
+  }
+  .small-label {
+    @apply block text-[9px] font-semibold tracking-[1px] text-faint;
+  }
+  .edit-placeholder {
+    @apply flex gap-3 border-t border-line p-5 text-faint;
+  }
+  .edit-placeholder p {
+    @apply text-[11px] leading-6;
+  }
+  .config-actions {
+    @apply flex justify-between gap-2 border-t border-line p-4;
+  }
+  .config-actions > button {
+    @apply flex items-center gap-1.5 text-[10px] text-muted;
+  }
+  .visual-panel {
+    @apply min-w-0;
+  }
+  .playback-bar {
+    @apply flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-2;
+  }
+  .playback-bar > div {
+    @apply flex items-center gap-3;
+  }
+  .primary-button,
+  .secondary-button {
+    @apply flex items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-[11px] font-semibold;
+  }
+  .primary-button {
+    @apply border-primary bg-primary text-on-primary hover:bg-primary-hover;
+  }
+  .secondary-button {
+    @apply border-line bg-panel text-muted hover:text-ink;
+  }
+  .playback-bar button:not(.primary-button):not(.secondary-button) {
+    @apply text-faint;
+  }
+  .playback-bar select {
+    @apply rounded-md border border-line bg-recessed px-2 py-1.5 text-[10px] text-muted;
+  }
+  .outcome {
+    @apply rounded-md border border-line bg-panel px-2 py-1 font-mono text-[9px] capitalize text-muted;
+  }
+  .outcome-running {
+    @apply border-accent/40 bg-selected text-accent;
+  }
+  .outcome-completed {
+    @apply border-success/30 bg-success-bg text-success;
+  }
+  .outcome-failed,
+  .outcome-not-found {
+    @apply border-error/30 bg-[#332329] text-error;
+  }
+  .outcome-pending {
+    @apply border-note/30 bg-note-bg text-note;
+  }
+  .flow-canvas {
+    @apply relative h-[420px] bg-recessed sm:h-[450px];
+  }
+  .flow-node {
+    @apply w-[255px] rounded-lg border border-line bg-surface px-4 py-3 shadow-[0_3px_15px_#0002];
+  }
+  .flow-node-top {
+    @apply mb-2 flex items-center gap-1.5 text-[8px] tracking-wide text-faint;
+  }
+  .flow-node-top small {
+    @apply ml-auto;
+  }
+  .flow-node > strong {
+    @apply block truncate text-[13px] font-medium;
+  }
+  .flow-node-bottom {
+    @apply mt-2 flex items-center justify-between text-[9px] text-muted;
+  }
+  .flow-node-bottom span {
+    @apply text-[7px] tracking-wide;
+  }
+  .state-visited {
+    @apply border-success/50;
+  }
+  .state-skipped {
+    opacity: 0.4;
+  }
+  .state-failed {
+    @apply border-error bg-[#332329];
+  }
+  .state-pending {
+    @apply border-note bg-note-bg;
+  }
+  .node-active {
+    @apply border-accent bg-selected shadow-[0_0_0_2px_#9acbff30];
+  }
+  .react-flow__handle {
+    width: 6px;
+    height: 6px;
+    border: 1px solid #192430;
+    background: #9acbff;
+  }
+  .react-flow.dark {
+    --xy-background-color: #0d1620;
+    --xy-controls-button-background-color: #223140;
+    --xy-controls-button-background-color-hover: #31485d;
+    --xy-controls-button-color: #b0c2d1;
+    --xy-controls-button-border-color: #364b5e;
+  }
+  .react-flow__attribution {
+    background: #192430 !important;
+    color: #91a9bc !important;
+    font-size: 8px !important;
+  }
+  .react-flow__controls {
+    @apply overflow-hidden rounded-md border border-line shadow-none;
+  }
+  .diagram-legend {
+    @apply absolute top-3 right-3 flex flex-wrap gap-3 rounded-md border border-line bg-surface/90 px-3 py-2 text-[9px] text-muted;
+  }
+  .diagram-legend > span {
+    @apply flex items-center gap-1;
+  }
+  .diagram-legend i {
+    @apply size-1.5 rounded-full;
+  }
+  .legend-active {
+    @apply bg-accent;
+  }
+  .legend-visited {
+    @apply bg-success;
+  }
+  .legend-skipped {
+    @apply bg-faint;
+  }
+  .legend-failed {
+    @apply bg-error;
+  }
+  .log-heading {
+    @apply flex items-center justify-between border-y border-line bg-panel/30 px-4 py-3 text-[10px] text-faint;
+  }
+  .log-heading > span:first-child {
+    @apply flex items-center gap-2 font-semibold text-ink;
+  }
+  .execution-log {
+    @apply h-[245px] overflow-auto bg-surface p-3;
+  }
+  .log-row {
+    @apply mb-2 flex gap-3 rounded-md border border-line bg-recessed p-3;
+  }
+  .log-index {
+    @apply font-mono text-[9px] text-faint;
+  }
+  .log-row > div {
+    @apply min-w-0 flex-1;
+  }
+  .log-row strong {
+    @apply flex items-center justify-between gap-2 text-[11px] font-medium;
+  }
+  .log-row strong small {
+    @apply text-[8px] font-normal tracking-wide text-faint;
+  }
+  .log-row p {
+    @apply mt-1 text-[10px] leading-5 text-muted;
+  }
+  .log-row code {
+    @apply mt-1 block break-all text-[9px] text-faint;
+  }
+  .log-skip {
+    opacity: 0.65;
+  }
+  .log-run {
+    @apply border-accent/30;
+  }
+  .log-empty {
+    @apply flex h-full flex-col items-center justify-center gap-3 text-faint;
+  }
+  .log-empty p {
+    @apply text-xs;
+  }
+  .error-message {
+    @apply mt-4 flex items-center gap-2 rounded-lg border border-error/30 bg-[#332329] p-4 text-xs text-error;
+  }
+  .request-snapshot {
+    @apply mt-4 grid gap-5 rounded-lg border border-line bg-surface p-5 sm:grid-cols-3;
+  }
+  .request-snapshot code {
+    @apply mt-3 block break-all text-xs text-accent;
+  }
+  .request-snapshot p {
+    @apply mt-2 break-all text-[10px] leading-5 text-muted;
+  }
+  .request-snapshot pre {
+    @apply mt-2 max-h-[120px] overflow-auto font-mono text-[10px] leading-5 text-muted;
+  }
+  .request-snapshot strong {
+    @apply mt-3 block break-words text-xs font-medium;
+  }
+  .status-line {
+    @apply min-h-7 pt-2 text-[11px] text-accent;
+  }
+  .code-section {
+    @apply mt-3 overflow-hidden rounded-lg border border-line bg-surface;
+  }
+  .code-heading {
+    @apply flex items-center justify-between gap-3 p-4;
+  }
+  .code-heading > button:first-child {
+    @apply flex items-center gap-2 text-xs;
+  }
+  .code-section > pre {
+    @apply max-h-[420px] overflow-auto border-t border-line bg-recessed p-5 font-mono text-[11px] leading-6 text-muted;
+  }
+  .learning-note {
+    @apply mt-5 flex items-start gap-3 rounded-lg border border-note/25 bg-note-bg p-4;
+  }
+  .learning-note > svg {
+    @apply shrink-0 text-note;
+  }
+  .learning-note strong {
+    @apply text-xs font-medium;
+  }
+  .learning-note p {
+    @apply mt-2 max-w-4xl text-[11px] leading-6 text-muted;
+  }
+  .limitations {
+    @apply mt-6 border-t border-line pt-4 text-xs text-muted;
+  }
+  .limitations summary {
+    @apply flex w-fit items-center gap-2;
+  }
+  .limitations p {
+    @apply mt-3 max-w-4xl leading-6;
+  }
+  .limitations a {
+    @apply mt-2 inline-flex items-center gap-1.5 text-accent;
+  }
+  footer {
+    @apply mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-line py-6 text-[10px] text-faint;
+  }
+  footer > span:first-child,
+  footer > a {
+    @apply flex items-center gap-1.5;
+  }
+  @media (max-width: 639px) {
+    .header-links a > span,
+    .header-links a > svg:last-child {
+      display: none;
+    }
+    .brand {
+      font-size: 16px;
+    }
+    .request-input {
+      flex-basis: 100%;
+    }
+    .request-input > label {
+      display: none;
+    }
+    .diagram-legend {
+      max-width: 200px;
+    }
+    .preset-input {
+      width: 100%;
+    }
+    .preset-input select {
+      flex: 1;
+    }
+  }
+}

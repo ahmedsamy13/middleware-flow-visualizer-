@@ -1,0 +1,42 @@
+@theme {
+  --color-canvas: #111923;
+  --color-surface: #192430;
+  --color-panel: #223140;
+  --color-recessed: #0d1620;
+  --color-line: #364b5e;
+  --color-ink: #edf4fa;
+  --color-muted: #b0c2d1;
+  --color-faint: #91a9bc;
+  --color-accent: #9acbff;
+  --color-primary: #9acbff;
+  --color-primary-hover: #b6daff;
+  --color-on-primary: #10283e;
+  --color-selected: #283f56;
+  --color-success: #9de4c4;
+  --color-success-bg: #193b33;
+  --color-note: #f1cd92;
+  --color-note-bg: #2c2a23;
+  --color-code-string: #f1cd92;
+  --color-code-keyword: #9acbff;
+  --color-code-type: #9de4c4;
+}
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+  }
+  ::selection {
+    background: #9acbff38;
+    color: var(--color-ink);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #506b81 transparent;
+  }
+  a {
+    text-underline-offset: 4px;
+  }
+}
