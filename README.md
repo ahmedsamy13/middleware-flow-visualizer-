@@ -18,6 +18,7 @@ npm run build
 - Assemble, name, enable/disable, reorder and remove middleware, routes, routers and error handlers.
 - Add nested routers and route handler groups. Edit handler behavior, response status, error message and simple custom request properties.
 - Step, play, pause and reset; inspect active/visited/skipped/failed nodes, execution reasons, router-local paths, baseUrl, params, custom properties and final response.
+- **Request path only** (default) hides skipped layers and shows the complete simulated path for the chosen method/URL, including entered routers/routes and executed middleware/error handlers. **Full stack** shows all registered layers. Enable **Reveal as you step** to build the request diagram progressively; reset clears that view. The stack editor and execution log retain all registrations and skip explanations. View changes never alter execution, JSON exports or generated code.
 - Simulates next(), response termination, next(error), rejected promises, next('route'), next('router') and pending requests.
 - Logging, authentication failure, nested router and route-skipping examples.
 - Generate and copy corresponding Express 5 code. Export/import validated version 1 JSON configurations.
@@ -36,6 +37,8 @@ Custom request property values accept JSON or a string fallback. Built-in reques
 ## Verification
 
 `npm test` compares representative simulated traces, local paths, params and status outcomes with actual requests to a temporary loopback Express 5 server. Scenarios cover order, route/method misses, nested routers, response termination, next('route'), next('router'), promise rejection, error recovery, unhandled errors and pending requests. Express and its types are development dependencies for these tests; the browser runtime has no backend.
+
+Diagram tests also check request-only filtering, progressive reveal/reset, method/URL changes, error and pending paths, route skipping and unmatched-request empty states. Browser checks cover both view modes on desktop/mobile and ensure filtering does not remove layers from configuration exports or generated code.
 
 `node tests/browser.mjs` checks playback, examples, handler editing, reorder/delete, configuration export, generated code, clipboard and responsive overflow. It uses an isolated headless Edge installation by default; set BROWSER_EXECUTABLE to another Chromium-compatible executable when needed. Start the dev server first.
 

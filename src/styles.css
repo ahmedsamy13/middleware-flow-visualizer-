@@ -263,6 +263,39 @@
   .flow-canvas {
     @apply relative h-[420px] bg-recessed sm:h-[450px];
   }
+  .diagram-toolbar {
+    @apply flex flex-wrap items-center gap-3 border-b border-line bg-panel/40 px-4 py-3;
+  }
+  .diagram-view {
+    @apply inline-flex rounded-md border border-line bg-recessed p-1;
+  }
+  .diagram-view button {
+    @apply rounded px-2.5 py-2 text-[10px] font-medium text-muted hover:text-ink;
+  }
+  .diagram-view button[aria-pressed="true"] {
+    @apply bg-selected text-accent;
+  }
+  .diagram-reveal {
+    @apply flex cursor-pointer items-center gap-2 text-[10px] text-muted;
+  }
+  .diagram-reveal input {
+    @apply size-3.5 accent-accent;
+  }
+  .diagram-count {
+    @apply ml-auto text-[9px] text-faint;
+  }
+  .diagram-help {
+    @apply border-b border-line px-4 py-2 text-[10px] leading-5 text-muted;
+  }
+  .diagram-empty {
+    @apply pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-8 text-center text-faint;
+  }
+  .diagram-empty strong {
+    @apply text-xs font-medium text-muted;
+  }
+  .diagram-empty p {
+    @apply text-[10px] leading-5;
+  }
   .flow-node {
     @apply w-[255px] rounded-lg border border-line bg-surface px-4 py-3 shadow-[0_3px_15px_#0002];
   }

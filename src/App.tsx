@@ -45,6 +45,7 @@ import {
   type Frame,
 } from "./engine";
 import "@xyflow/react/dist/style.css";
+import { diagramLayers, requestFrames, type DiagramMode } from "./diagram";
 
 type FlowNode = Node<{ layer: Layer; state: string; active: boolean }, "layer">;
 const labels: Record<Layer["action"], string> = {
@@ -126,6 +127,8 @@ export default function App() {
   const [status, setStatus] = useState("");
   const [preset, setPreset] = useState("logging");
   const [codeOpen, setCodeOpen] = useState(false);
+  const [diagramMode, setDiagramMode] = useState<DiagramMode>("request");
+  const [revealAsYouStep, setRevealAsYouStep] = useState(false);
   const importRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const result = useMemo(() => {
@@ -169,6 +172,14 @@ export default function App() {
   const latest = new Map(
     history.filter((frame) => frame.id).map((frame) => [frame.id, frame]),
   );
+  const visibleLayers = diagramLayers(
+    config.layers,
+    result.trace,
+    history,
+    diagramMode,
+    revealAsYouStep,
+  );
+  const visibleIds = new Set(visibleLayers.map((layer) => layer.id));
   const depths = new Map<string, number>();
   function depthsFor(layers: Layer[], depth = 0) {
     layers.forEach((layer) => {
@@ -177,7 +188,7 @@ export default function App() {
     });
   }
   depthsFor(config.layers);
-  const nodes: FlowNode[] = all.map((layer, index) => ({
+  const nodes: FlowNode[] = visibleLayers.map((layer, index) => ({
     id: layer.id,
     type: "layer",
     position: { x: 40 + (depths.get(layer.id) ?? 0) * 55, y: 35 + index * 128 },
@@ -201,20 +212,18 @@ export default function App() {
                 : "idle",
     },
   }));
-  const edges: Edge[] = all
+  const edges: Edge[] = visibleLayers
     .slice(1)
     .map((layer, index) => ({
       id: `order-${index}`,
-      source: all[index].id,
+      source: visibleLayers[index].id,
       target: layer.id,
       type: "smoothstep",
       style: { stroke: "#4c6478", strokeWidth: 1.5 },
       markerEnd: { type: MarkerType.ArrowClosed, color: "#4c6478" },
       deletable: false,
     }));
-  const runs = history.filter(
-    (frame) => frame.id && frame.event !== "skip" && frame.event !== "exit",
-  );
+  const runs = requestFrames(history).filter((frame) => visibleIds.has(frame.id!));
   for (let index = 1; index < runs.length; index++)
     if (runs[index - 1].id !== runs[index].id)
       edges.push({
@@ -762,8 +771,45 @@ export default function App() {
                 </span>
               </div>
             </div>
+            <div className="diagram-toolbar">
+              <div role="group" aria-label="Diagram view" className="diagram-view">
+                <button
+                  aria-pressed={diagramMode === "full"}
+                  onClick={() => setDiagramMode("full")}
+                >
+                  Full stack
+                </button>
+                <button
+                  aria-pressed={diagramMode === "request"}
+                  onClick={() => setDiagramMode("request")}
+                >
+                  Request path only
+                </button>
+              </div>
+              {diagramMode === "request" && (
+                <label className="diagram-reveal">
+                  <input
+                    type="checkbox"
+                    checked={revealAsYouStep}
+                    onChange={(event) => setRevealAsYouStep(event.target.checked)}
+                  />
+                  Reveal as you step
+                </label>
+              )}
+              <span className="diagram-count" aria-live="polite">
+                {visibleLayers.length} / {all.length} layers shown
+              </span>
+            </div>
+            <p className="diagram-help">
+              {diagramMode === "full"
+                ? "All registered layers. Skipped steps appear dimmed."
+                : revealAsYouStep
+                  ? "Only entered routes, routers and executed handlers appear as you step. Skips stay in the log."
+                  : "Complete path for this configured request. Skipped layers are hidden; Step and Play highlight progress."}
+            </p>
             <div className="flow-canvas" aria-label="Middleware diagram">
               <ReactFlow<FlowNode>
+                key={`${diagramMode}-${revealAsYouStep}-${visibleLayers.map((layer) => layer.id).join(",")}`}
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}
@@ -785,6 +831,23 @@ export default function App() {
                 />
                 <Controls showInteractive={false} />
               </ReactFlow>
+              {!visibleLayers.length && (
+                <div className="diagram-empty" role="status">
+                  <GitBranch size={24} />
+                  <strong>
+                    {result.error
+                      ? "Fix the configuration to see the request path."
+                      : diagramMode === "request" && revealAsYouStep && cursor < 0
+                        ? "Press Step or Play to reveal the request path."
+                        : "No layers execute for this request."}
+                  </strong>
+                  <p>
+                    {diagramMode === "request" && all.length > 0
+                      ? "Switch to Full stack to inspect every registration."
+                      : "Add a layer to start exploring."}
+                  </p>
+                </div>
+              )}
               <div className="diagram-legend">
                 <span>
                   <i className="legend-active" />
@@ -794,10 +857,12 @@ export default function App() {
                   <i className="legend-visited" />
                   Visited
                 </span>
-                <span>
-                  <i className="legend-skipped" />
-                  Skipped
-                </span>
+                {diagramMode === "full" && (
+                  <span>
+                    <i className="legend-skipped" />
+                    Skipped
+                  </span>
+                )}
                 <span>
                   <i className="legend-failed" />
                   Failed
