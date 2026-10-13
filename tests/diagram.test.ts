@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createLayer, simulate, flatten, type Config, type Layer } from "../src/engine.ts";
-import { diagramLayers } from "../src/diagram.ts";
+import { diagramLayers, executionEvents } from "../src/diagram.ts";
 
 function fixture(): Config {
   function resource(name: string): Layer {
@@ -88,4 +88,36 @@ test("an unmatched request with no global handlers yields an empty request diagr
   config.url = "/missing";
   assert.equal(simulate(config).at(-1)?.status, 404);
   assert.deepEqual(diagramLayers(config.layers, simulate(config), [], "request", false), []);
+});
+
+test("request playback excludes skipped registrations and ends immediately at the response", () => {
+  const config = fixture();
+  const trace = simulate(config);
+  const events = executionEvents(trace, "request");
+  assert.deepEqual(events.map(({ frame }) => frame.id), ["logger", "tours-router", "tours-route", "tours-auth", "tours-response"]);
+  assert.equal(events.at(-1)?.frame.outcome, "completed");
+  assert.equal(events.at(-1)?.frame.status, 200);
+  assert.ok(events.at(-1)!.index < trace.length - 1);
+  assert.ok(executionEvents(trace, "full").some(({ frame }) => frame.event === "skip"));
+  assert.equal(executionEvents(trace, "full").length, trace.length);
+  assert.ok(events.every(({ frame, index }) => trace[index] === frame));
+});
+
+test("filtered playback preserves router exits and final error/404/pending outcomes", () => {
+  const config = fixture();
+  config.url = "/api/v1/tours/missing";
+  let events = executionEvents(simulate(config), "request");
+  assert.ok(events.some(({ frame }) => frame.event === "exit"));
+  assert.equal(events.at(-1)?.frame.outcome, "not-found");
+  assert.equal(events.at(-1)?.frame.status, 404);
+  config.url = "/api/v1/tours";
+  const auth = config.layers[2].children[0].children[0];
+  auth.action = "reject";
+  events = executionEvents(simulate(config), "request");
+  assert.equal(events.at(-1)?.frame.id, "errors");
+  assert.equal(events.at(-1)?.frame.outcome, "failed");
+  auth.action = "pending";
+  events = executionEvents(simulate(config), "request");
+  assert.equal(events.at(-1)?.frame.outcome, "pending");
+  assert.equal(events.at(-1)?.frame.status, undefined);
 });

@@ -2,6 +2,13 @@ import { flatten, type Frame, type Layer } from "./engine.ts";
 
 export type DiagramMode = "full" | "request";
 
+// Keep original trace indices so switching views preserves playback position.
+export function executionEvents(trace: Frame[], mode: DiagramMode) {
+  return trace
+    .map((frame, index) => ({ frame, index }))
+    .filter(({ frame }) => mode === "full" || frame.event !== "skip");
+}
+
 // A skipped registration is not part of the executed request path. Router and
 // route entries are retained to show the context of the handlers that ran.
 export function requestFrames(trace: Frame[]): Frame[] {

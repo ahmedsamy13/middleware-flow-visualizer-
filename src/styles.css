@@ -404,6 +404,19 @@
   .log-skip {
     opacity: 0.65;
   }
+  .execution-finish {
+    @apply rounded-md border border-line bg-panel p-3 text-[11px] font-semibold text-muted;
+  }
+  .finish-completed {
+    @apply border-success/30 bg-success-bg text-success;
+  }
+  .finish-failed,
+  .finish-not-found {
+    @apply border-error/30 text-error;
+  }
+  .finish-pending {
+    @apply border-note/30 bg-note-bg text-note;
+  }
   .log-run {
     @apply border-accent/30;
   }

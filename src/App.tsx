@@ -45,7 +45,7 @@ import {
   type Frame,
 } from "./engine";
 import "@xyflow/react/dist/style.css";
-import { diagramLayers, requestFrames, type DiagramMode } from "./diagram";
+import { diagramLayers, executionEvents, requestFrames, type DiagramMode } from "./diagram";
 
 type FlowNode = Node<{ layer: Layer; state: string; active: boolean }, "layer">;
 const labels: Record<Layer["action"], string> = {
@@ -143,6 +143,17 @@ export default function App() {
       };
     }
   }, [config]);
+  const events = useMemo(
+    () => executionEvents(result.trace, diagramMode),
+    [result.trace, diagramMode],
+  );
+  const lastEventIndex = events.at(-1)?.index ?? -1;
+  const history = result.trace.slice(0, cursor + 1);
+  const logHistory = events
+    .filter(({ index }) => index <= cursor)
+    .map(({ frame }) => frame);
+  const current = logHistory.at(-1);
+  const finished = lastEventIndex >= 0 && cursor >= lastEventIndex;
   useEffect(() => {
     setCursor(-1);
     setPlaying(false);
@@ -151,24 +162,21 @@ export default function App() {
     if (!playing) return;
     const timer = setInterval(
       () =>
-        setCursor((current) => Math.min(current + 1, result.trace.length - 1)),
+        setCursor((current) => events.find(({ index }) => index > current)?.index ?? current),
       speed,
     );
     return () => clearInterval(timer);
-  }, [playing, result.trace.length, speed]);
+  }, [playing, events, speed]);
   useEffect(() => {
-    if (cursor >= result.trace.length - 1 && cursor >= 0) setPlaying(false);
+    if (finished) setPlaying(false);
     logRef.current?.scrollTo({
       top: logRef.current.scrollHeight,
       behavior: "instant",
     });
-  }, [cursor, result.trace.length]);
+  }, [cursor, finished, diagramMode]);
   const all = flatten(config.layers);
   const selected = all.find((layer) => layer.id === selectedId);
   const context = selected ? findContext(config.layers, selected.id) : null;
-  const current = cursor >= 0 ? result.trace[cursor] : undefined;
-  const finished = cursor === result.trace.length - 1 && cursor >= 0;
-  const history = result.trace.slice(0, cursor + 1);
   const latest = new Map(
     history.filter((frame) => frame.id).map((frame) => [frame.id, frame]),
   );
@@ -724,7 +732,7 @@ export default function App() {
                     if (finished) setCursor(-1);
                     setPlaying(!playing);
                   }}
-                  disabled={!!result.error || !result.trace.length}
+                  disabled={!!result.error || !events.length}
                   className="primary-button"
                 >
                   {playing ? <Pause size={14} /> : <Play size={14} />}{" "}
@@ -734,10 +742,10 @@ export default function App() {
                   onClick={() => {
                     setPlaying(false);
                     setCursor((current) =>
-                      Math.min(current + 1, result.trace.length - 1),
+                      events.find(({ index }) => index > current)?.index ?? current,
                     );
                   }}
-                  disabled={!!result.error || finished}
+                  disabled={!!result.error || !events.length || finished}
                   className="secondary-button"
                 >
                   <SkipForward size={14} />
@@ -804,8 +812,8 @@ export default function App() {
               {diagramMode === "full"
                 ? "All registered layers. Skipped steps appear dimmed."
                 : revealAsYouStep
-                  ? "Only entered routes, routers and executed handlers appear as you step. Skips stay in the log."
-                  : "Complete path for this configured request. Skipped layers are hidden; Step and Play highlight progress."}
+                  ? "Reveal the request path as you step. Skipped layers are hidden from the diagram and log."
+                  : "Complete path for this configured request. Diagram, log and playback exclude skipped layers."}
             </p>
             <div className="flow-canvas" aria-label="Middleware diagram">
               <ReactFlow<FlowNode>
@@ -875,7 +883,7 @@ export default function App() {
                 Execution log
               </span>
               <span>
-                {cursor + 1} / {result.trace.length} steps
+                {logHistory.length} / {events.length} steps
               </span>
             </div>
             <div
@@ -884,7 +892,7 @@ export default function App() {
               role="log"
               aria-label="Execution log"
             >
-              {history.map((frame, index) => (
+              {logHistory.map((frame, index) => (
                 <div className={`log-row log-${frame.event}`} key={index}>
                   <span className="log-index">{index + 1}</span>
                   <div>
@@ -899,7 +907,19 @@ export default function App() {
                   </div>
                 </div>
               ))}
-              {!history.length && (
+              {finished && current && (
+                <p className={`execution-finish finish-${current.outcome}`} aria-live="polite">
+                  {current.outcome === "completed"
+                    ? "Completed"
+                    : current.outcome === "pending"
+                      ? "Pending — request remains open"
+                      : current.outcome === "not-found"
+                        ? "Not found"
+                        : "Failed"}
+                  {current.status !== undefined && ` · HTTP ${current.status}`}
+                </p>
+              )}
+              {!logHistory.length && (
                 <div className="log-empty">
                   <Play size={20} />
                   <p>Press Step or Play to follow the request.</p>
